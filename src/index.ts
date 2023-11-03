@@ -1,10 +1,12 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import { IUserRepository } from "./repositories";
+import { IContentRepository, IUserRepository } from "./repositories";
 import UserRepository from "./repositories/user";
-import { IUserHandler } from "./handlers";
+import { IContentHandler, IUserHandler } from "./handlers";
 import UserHandler from "./handlers/user";
 import JWTMiddleware from "./middleware/jwt";
+import ContentRepository from "./repositories/content";
+import ContentHandler from "./handlers/content";
 
 const PORT = Number(process.env.PORT || 8080);
 const app = express();
@@ -12,6 +14,8 @@ const clnt = new PrismaClient();
 
 const userRepo: IUserRepository = new UserRepository(clnt);
 const userHandler: IUserHandler = new UserHandler(userRepo);
+const contentRepo: IContentRepository = new ContentRepository(clnt);
+const contentHandler: IContentHandler = new ContentHandler(contentRepo);
 const jwtMiddleware = new JWTMiddleware();
 
 app.use(express.json());
@@ -22,6 +26,12 @@ app.get("/", jwtMiddleware.auth, (req, res) => {
 });
 
 const userRouter = express.Router();
+
+const contentRouter = express.Router();
+
+app.use("/content", contentRouter);
+
+contentRouter.post("/", jwtMiddleware.auth, contentHandler.createContent);
 
 app.use("/user", userRouter);
 
