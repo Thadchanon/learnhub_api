@@ -31,9 +31,19 @@ const contentRouter = express.Router();
 
 app.use("/content", contentRouter);
 
+contentRouter.get("/", contentHandler.getAll);
+
+contentRouter.get("/:id", contentHandler.getById);
+
 contentRouter.post("/", jwtMiddleware.auth, contentHandler.createContent);
 
+contentRouter.delete("/:id", jwtMiddleware.auth, contentHandler.delById);
+
+contentRouter.patch("/:id", jwtMiddleware.auth, contentHandler.updateById);
+
 app.use("/user", userRouter);
+
+userRouter.get("/:username", userHandler.getByUsername);
 
 userRouter.post("/", userHandler.registration);
 

@@ -9,6 +9,7 @@ import { ICredentialDto, ILoginDto } from "../dto/auth";
 import { sign } from "jsonwebtoken";
 import { JWT_SECRET } from "../const";
 import { AuthStatus } from "../middleware/jwt";
+import { userMapper } from "../utils/user.mapper";
 
 export default class UserHandler implements IUserHandler {
   private repo: IUserRepository;
@@ -112,6 +113,23 @@ export default class UserHandler implements IUserHandler {
       return res.status(500).json({
         message: `Internal Server Error`,
       });
+    }
+  };
+  public getByUsername: RequestHandler<
+    { username: string },
+    IUserDto | IErrorDto
+  > = async (req, res) => {
+    try {
+      const result = await this.repo.findByUsername(req.params.username);
+      const userResponse = userMapper(result);
+      return res.status(200).json(userResponse).end();
+    } catch (error) {
+      return res
+        .status(500)
+        .json({
+          message: `Internal Server Error`,
+        })
+        .end();
     }
   };
 }
