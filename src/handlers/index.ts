@@ -9,11 +9,14 @@ import {
   ICreateContentDto,
   IUpdateDto,
 } from "../dto/content";
+import { IMessageDto } from "../dto/message";
 
 export interface IUserHandler {
   registration: RequestHandler<{}, IUserDto | IErrorDto, ICreateUserDto>;
 
   login: RequestHandler<{}, ICredentialDto | IErrorDto, ILoginDto>;
+
+  logout: RequestHandler<{}, IMessageDto, undefined, undefined, AuthStatus>;
 
   selfCheck: RequestHandler<
     {},

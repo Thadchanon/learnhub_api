@@ -47,3 +47,8 @@ export interface IContentRepository {
   delById(id: number): Promise<IContent>;
   updateById(id: number, data: IUpdateDto): Promise<IContent>;
 }
+
+export interface IBlacklistRepository {
+  addToBlacklist(token: string, exp: number): Promise<void>;
+  isAlreadyBlacklisted(token: string): Promise<boolean>;
+}

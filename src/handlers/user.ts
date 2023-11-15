@@ -2,19 +2,23 @@ import { RequestHandler, json } from "express";
 import { IUserHandler } from ".";
 import { ICreateUserDto, IUserDto } from "../dto/user";
 import { IErrorDto } from "../dto/error";
-import { IUserRepository } from "../repositories";
+import { IBlacklistRepository, IUserRepository } from "../repositories";
 import { hashPassword, verifyPassword } from "../utils/bcrypt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { ICredentialDto, ILoginDto } from "../dto/auth";
-import { sign } from "jsonwebtoken";
-import { JWT_SECRET } from "../const";
+import { JWT_SECRET, getAuthToken } from "../const";
 import { AuthStatus } from "../middleware/jwt";
 import { userMapper } from "../utils/user.mapper";
+import { IMessageDto } from "../dto/message";
+import { JwtPayload, sign, verify } from "jsonwebtoken";
 
 export default class UserHandler implements IUserHandler {
   private repo: IUserRepository;
-  constructor(repo: IUserRepository) {
+  private blacklistRepo: IBlacklistRepository;
+
+  constructor(repo: IUserRepository, blacklistRepo: IBlacklistRepository) {
     this.repo = repo;
+    this.blacklistRepo = blacklistRepo;
   }
 
   public selfCheck: RequestHandler<
@@ -63,6 +67,54 @@ export default class UserHandler implements IUserHandler {
           .end();
       }
     };
+
+  public logout: RequestHandler<
+    {},
+    IMessageDto,
+    undefined,
+    undefined,
+    AuthStatus
+  > = async (req, res) => {
+    try {
+      const authHeader = req.header("Authorization");
+
+      if (!authHeader)
+        return res
+          .status(400)
+          .json({
+            message: "Authorization header is expected",
+          })
+          .end();
+
+      const authToken = getAuthToken(authHeader);
+      const { exp } = verify(authToken, JWT_SECRET) as JwtPayload;
+      if (!exp)
+        return res
+          .status(400)
+          .json({
+            message: "JWT is invalid",
+          })
+          .end();
+
+      await this.blacklistRepo.addToBlacklist(authToken, exp);
+
+      return res
+        .status(200)
+        .json({
+          message: "You've been logged out",
+        })
+        .end();
+    } catch (error) {
+      console.error(error);
+
+      return res
+        .status(500)
+        .json({
+          message: "Internal Server Error",
+        })
+        .end();
+    }
+  };
 
   public registration: RequestHandler<
     {},

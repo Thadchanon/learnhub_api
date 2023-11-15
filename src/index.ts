@@ -8,26 +8,35 @@ import JWTMiddleware from "./middleware/jwt";
 import ContentRepository from "./repositories/content";
 import ContentHandler from "./handlers/content";
 import cors from "cors";
-import { createClient } from "redis";
+import { RedisClientType, createClient } from "redis";
+import { REDIS_URL } from "./const";
+import BlacklistRepository from "./repositories/blacklist";
 
 const PORT = Number(process.env.PORT || 8080);
 const app = express();
 const clnt = new PrismaClient();
-const redisClnt = createClient();
+const redisClnt: RedisClientType = createClient({
+  url: REDIS_URL,
+});
 
-redisClnt.GET;
-redisClnt.SET;
+clnt
+  .$connect()
+  .then(() => redisClnt.connect())
+  .catch((err) => {
+    console.error("Error", err);
+  });
 
-const userRepo: IUserRepository = new UserRepository(clnt);
-const userHandler: IUserHandler = new UserHandler(userRepo);
+const blacklistRepo = new BlacklistRepository(redisClnt);
+
+const userRepo = new UserRepository(clnt);
+const userHandler = new UserHandler(userRepo, blacklistRepo);
 const contentRepo: IContentRepository = new ContentRepository(clnt);
 const contentHandler: IContentHandler = new ContentHandler(contentRepo);
-const jwtMiddleware = new JWTMiddleware();
+const jwtMiddleware = new JWTMiddleware(blacklistRepo);
 app.use(cors());
 app.use(express.json());
 
-app.get("/", jwtMiddleware.auth, (req, res) => {
-  console.log(res.locals);
+app.get("/", (req, res) => {
   return res.status(200).send("Welcome to LearnHub").end();
 });
 
@@ -56,6 +65,8 @@ userRouter.post("/", userHandler.registration);
 const authRouter = express.Router();
 
 app.use("/auth", authRouter);
+
+authRouter.get("/logout", jwtMiddleware.auth, userHandler.logout);
 
 authRouter.post("/login", userHandler.login);
 

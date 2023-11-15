@@ -1,11 +1,11 @@
 import { PrismaClient, User } from "@prisma/client";
-import { IUser, IUserRepository } from ".";
-import { ICreateUserDto, IUserDto } from "../dto/user";
+import { IBlacklistRepository, IUser, IUserRepository } from ".";
+import { ICreateUserDto } from "../dto/user";
 import { SAFE_USER_SELECT } from "../const";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export default class UserRepository implements IUserRepository {
   private prisma: PrismaClient;
-
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
   }
