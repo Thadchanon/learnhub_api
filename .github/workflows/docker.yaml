@@ -1,6 +1,10 @@
 run-name: "Build and push Docker image for ${{ github.event_name }} on ${{ github.ref_name }} by ${{ github.actor }}"
 
-on: push
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   hello-world:
