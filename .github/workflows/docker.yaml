@@ -10,7 +10,7 @@ jobs:
         run: echo "Hello, world"
       - name: Where am i ?
         run: pwd
-      - name: What do you have?
-        run: ls
       - name: Check out
         uses: actions/checkout@v3
+      - name: What do you have?
+        run: ls
