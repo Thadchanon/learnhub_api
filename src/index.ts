@@ -7,17 +7,23 @@ import UserHandler from "./handlers/user";
 import JWTMiddleware from "./middleware/jwt";
 import ContentRepository from "./repositories/content";
 import ContentHandler from "./handlers/content";
+import cors from "cors";
+import { createClient } from "redis";
 
 const PORT = Number(process.env.PORT || 8080);
 const app = express();
 const clnt = new PrismaClient();
+const redisClnt = createClient();
+
+redisClnt.GET;
+redisClnt.SET;
 
 const userRepo: IUserRepository = new UserRepository(clnt);
 const userHandler: IUserHandler = new UserHandler(userRepo);
 const contentRepo: IContentRepository = new ContentRepository(clnt);
 const contentHandler: IContentHandler = new ContentHandler(contentRepo);
 const jwtMiddleware = new JWTMiddleware();
-
+app.use(cors());
 app.use(express.json());
 
 app.get("/", jwtMiddleware.auth, (req, res) => {

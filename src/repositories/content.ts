@@ -31,6 +31,9 @@ export default class ContentRepository implements IContentRepository {
   getAll(): Promise<IContent[]> {
     return this.prisma.content.findMany({
       include: INCLUDE_OWNERS,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
   }
 
